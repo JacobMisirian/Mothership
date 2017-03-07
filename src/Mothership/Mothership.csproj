@@ -43,11 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientServer\ClientResponse.cs" />
     <Compile Include="ClientServer\ClientServer.cs" />
     <Compile Include="MothershipConfiguration.cs" />
     <Compile Include="Networking\ClientConnectedEventArgs.cs" />
     <Compile Include="Networking\ClientDisconnectedEventArgs.cs" />
-    <Compile Include="Networking\ClientMessageReceivedEventArgs.cs" />
     <Compile Include="Networking\TcpClient.cs" />
     <Compile Include="Networking\TcpServer.cs" />
     <Compile Include="Program.cs" />

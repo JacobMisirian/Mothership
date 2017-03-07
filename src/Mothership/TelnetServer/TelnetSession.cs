@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 
 namespace Mothership.TelnetServer
 {
@@ -14,8 +12,9 @@ namespace Mothership.TelnetServer
         public string UID { get; private set; }
         public AccessLevel AccessLevel { get; private set; }
         public Char PromptLetter { get; private set; }
-
         public string SelectedClient { get; private set; }
+
+        public Thread SessionThread { get; set; }
 
         public TelnetSession(string uid)
         {
@@ -42,6 +41,19 @@ namespace Mothership.TelnetServer
                     PromptLetter = PROMPT_SHELL;
                     break;
             }
+        }
+
+        public string GetPrompt()
+        {
+            switch (AccessLevel)
+            {
+                case AccessLevel.Server:
+                    return string.Format("{0} ", PromptLetter);
+                case AccessLevel.Client:
+                case AccessLevel.Shell:
+                    return string.Format("{0}{1} ", SelectedClient, PromptLetter);
+            }
+            return null;
         }
 
         public void SelectClient(string client)

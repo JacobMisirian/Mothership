@@ -10,7 +10,6 @@ namespace Mothership.Networking
     {
         public event EventHandler<ClientConnectedEventArgs> ClientConnected;
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
-        public event EventHandler<ClientMessageReceivedEventArgs> ClientMessageReceived;
 
         public X509Certificate SslCertificate { get; private set; }
         public bool UsingSsl { get { return SslCertificate != null; } }
@@ -56,20 +55,12 @@ namespace Mothership.Networking
             }
         }
 
-        private void listenForMessagesThread(TcpClient client)
-        {
-            while (true)
-                OnClientMessageReceived(client, client.ReadLine());
-        }
-
         protected virtual void OnClientConnected(System.Net.Sockets.TcpClient client)
         {
             var handler = ClientConnected;
             if (handler != null)
             {
                 var client_ = new TcpClient(client, UsingSsl, SslCertificate);
-                client_.MessageListenerThread = new Thread(() => listenForMessagesThread(client_));
-                client_.MessageListenerThread.Start();
 
                 handler(this, new ClientConnectedEventArgs(client_));
             }
@@ -79,12 +70,6 @@ namespace Mothership.Networking
             var handler = ClientDisconnected;
             if (handler != null)
                 handler(this, new ClientDisconnectedEventArgs(client));
-        }
-        protected virtual void OnClientMessageReceived(TcpClient client, string message)
-        {
-            var handler = ClientMessageReceived;
-            if (handler != null)
-                handler(this, new ClientMessageReceivedEventArgs(client, message));
         }
     }
 }

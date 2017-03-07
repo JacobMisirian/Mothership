@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mothership.ClientServer;
+using Mothership.TelnetServer;
 
 namespace Mothership
 {
@@ -10,6 +7,12 @@ namespace Mothership
     {
         static void Main(string[] args)
         {
+            var config = MothershipConfiguration.FromFile(args[0]);
+            var clientServer = new ClientServer.ClientServer(config.ClientPort);
+            clientServer.Start();
+
+            var telnetServer = new TelnetServer.TelnetServer(config.TelnetUser, config.TelnetPassword, config.TelnetPort, config.TelnetMotd, clientServer);
+            telnetServer.Start();
         }
     }
 }

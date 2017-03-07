@@ -13,37 +13,49 @@ namespace Mothership
         public int TelnetPort { get; set; }
         public string TelnetUser { get; set; }
         public string TelnetPassword { get; set; }
+        public string TelnetMotd { get; set; }
 
         public int ClientPort { get; private set; }
         public X509Certificate SslCertificate { get; private set; }
 
+        public MothershipConfiguration()
+        {
+            TelnetPort = 23;
+            TelnetUser = "root";
+            TelnetPassword = "toor";
+            TelnetMotd = string.Empty;
+        }
+
         public static MothershipConfiguration FromFile(string path)
         {
             var config = new MothershipConfiguration();
-            StreamReader reader = new StreamReader(path);
+            string[] lines = File.ReadAllLines(path);
 
-            while (reader.BaseStream.Position < reader.BaseStream.Length)
+            foreach (string line in lines)
             {
-                string[] parts = reader.ReadLine().Trim().Split(' ');
+                string[] parts = line.Trim().Split(' ');
                 string cmd = parts[0];
                 string[] args = parts.Skip(1).ToArray();
 
                 switch (cmd.ToLower())
                 {
                     case "telnetport":
-                        config.TelnetPort = Convert.ToInt32(args[1]);
+                        config.TelnetPort = Convert.ToInt32(args[0]);
                         break;
                     case "telnetuser":
-                        config.TelnetUser = args[1];
+                        config.TelnetUser = args[0];
                         break;
                     case "telnetpass":
-                        config.TelnetPassword = args[1];
+                        config.TelnetPassword = args[0];
                         break;
                     case "clientport":
-                        config.ClientPort = Convert.ToInt32(args[1]);
+                        config.ClientPort = Convert.ToInt32(args[0]);
                         break;
                     case "sslcert":
-                        config.SslCertificate = new X509Certificate2(args[1], args[2]);
+                        config.SslCertificate = new X509Certificate2(args[0], args[1]);
+                        break;
+                    case "motd":
+                        config.TelnetMotd = string.Join("\r\n", File.ReadAllLines(args[0]));
                         break;
                 }
             }
