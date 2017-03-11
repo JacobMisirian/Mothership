@@ -55,12 +55,14 @@
     <Compile Include="TelnetServer\ClientCommands\AliasCommand.cs" />
     <Compile Include="TelnetServer\ClientCommands\DisconnectCommand.cs" />
     <Compile Include="TelnetServer\ClientCommands\ExitCommand.cs" />
+    <Compile Include="TelnetServer\ClientCommands\HelpCommand.cs" />
     <Compile Include="TelnetServer\ClientCommands\ShellCommand.cs" />
     <Compile Include="TelnetServer\IClientCommand.cs" />
     <Compile Include="TelnetServer\IServerCommand.cs" />
     <Compile Include="TelnetServer\ArgumentLengthException.cs" />
     <Compile Include="TelnetServer\ServerCommands\AliasCommand.cs" />
     <Compile Include="TelnetServer\ServerCommands\ExitCommand.cs" />
+    <Compile Include="TelnetServer\ServerCommands\HelpCommand.cs" />
     <Compile Include="TelnetServer\ServerCommands\SelectCommand.cs" />
     <Compile Include="TelnetServer\ServerCommands\ShowCommand.cs" />
     <Compile Include="TelnetServer\ServerCommands\WCommand.cs" />
