@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -60,6 +61,34 @@ namespace Mothership.Networking
         public void WriteLine(string strf = "", params object[] args)
         {
             Write(string.Format(strf + "\r\n", args));
+        }
+
+        public void WriteLineCentered(string pre, string content, string suf, int length)
+        {
+            if (pre.Length + content.Length + suf.Length >= length)
+                Write("{0} {1} {2}", pre, content, suf);
+            else
+            {
+                int spaces = length - (pre.Length + content.Length + suf.Length);
+                int preSpace, sufSpace;
+
+                if (spaces % 2 == 0)
+                {
+                    preSpace = spaces / 2;
+                    sufSpace = spaces / 2;
+                }
+                else
+                {
+                    preSpace = (spaces - 1) / 2;
+                    sufSpace = (spaces + 1) / 2;
+                }
+
+                Write(pre);
+                Write(string.Concat(Enumerable.Repeat(" ", preSpace)));
+                Write(content);
+                Write(string.Concat(Enumerable.Repeat(" ", sufSpace)));
+                WriteLine(suf);
+            }
         }
     }
 }

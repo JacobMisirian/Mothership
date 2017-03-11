@@ -51,7 +51,7 @@ namespace Mothership.TelnetServer
                     return string.Format("{0} ", PromptLetter);
                 case AccessLevel.Client:
                 case AccessLevel.Shell:
-                    return string.Format("{0}{1} ", SelectedClient, PromptLetter);
+                    return string.Format("[{0}]{1} ", SelectedClient, PromptLetter);
             }
             return null;
         }

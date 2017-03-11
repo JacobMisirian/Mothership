@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
@@ -11,13 +12,15 @@ namespace Mothership.ClientServer
 {
     public class ClientServer
     {
+        public const int CLIENT_UID_LENGTH = 0x07;
+
         public Dictionary<string, TcpClient> Clients { get; private set; }
 
         private TcpServer server;
 
-        public ClientServer(int port)
+        public ClientServer(int port, X509Certificate certificate)
         {
-            server = new TcpServer(port);
+            server = new TcpServer(port, certificate);
 
             Clients = new Dictionary<string, TcpClient>();
         }
@@ -52,11 +55,14 @@ namespace Mothership.ClientServer
         
         private void server_clientConnected(object sender, ClientConnectedEventArgs e)
         {
-            e.Client.Banner = e.Client.ReadLine();
+            e.Client.Banner = ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(e.Client.ReadLine()));
             var md5 = MD5.Create();
             byte[] hash = md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(e.Client.Banner + e.Client.IP));
-            e.Client.UID = ASCIIEncoding.ASCII.GetString(hash).Substring(6);
+            StringBuilder hexHash = new StringBuilder();
+            for (int i = 0; i < CLIENT_UID_LENGTH; i++)
+                hexHash.AppendFormat(hash[i].ToString("X2"));
 
+            e.Client.UID = hexHash.ToString();
             Clients.Add(e.Client.UID, e.Client);
         }
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)

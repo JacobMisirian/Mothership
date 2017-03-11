@@ -2,36 +2,70 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 
-using Mothership.ClientServer;
 using Mothership.Networking;
+using Mothership.TelnetServer.ServerCommands;
 
 namespace Mothership.TelnetServer
 {
     public class TelnetServer
     {
+        public ClientServer.ClientServer ClientServer { get; private set; }
+        public Dictionary<string, IClientCommand> ClientCommands { get; private set; }
+        public Dictionary<string, IServerCommand> ServerCommands { get; private set; }
+
         private string telnetUser;
         private string telnetPass;
         private string motd;
 
         private TcpServer server;
-        private ClientServer.ClientServer clientServer;
 
         private Dictionary<string, TcpClient> users;
         private Dictionary<string, TelnetSession> sessions;
 
         public TelnetServer(string telnetUser, string telnetPass, int port, string motd, ClientServer.ClientServer clientServer)
         {
+            ClientServer = clientServer;
             this.telnetUser = telnetUser;
             this.telnetPass = telnetPass;
             this.motd = motd;
 
             server = new TcpServer(port);
-            this.clientServer = clientServer;
 
             users = new Dictionary<string, TcpClient>();
             sessions = new Dictionary<string, TelnetSession>();
+
+            ClientCommands = new Dictionary<string, IClientCommand>();
+            ServerCommands = new Dictionary<string, IServerCommand>();
+
+            LoadClientCommands(Assembly.GetExecutingAssembly());
+            LoadServerCommands(Assembly.GetExecutingAssembly());
+        }
+
+        public void LoadClientCommands(Assembly ass)
+        {
+            foreach (var type in ass.GetTypes())
+            {
+                if (type.GetInterface(typeof(IClientCommand).FullName) != null)
+                {
+                    var command = (IClientCommand)Activator.CreateInstance(type);
+                    ClientCommands.Add(command.Name, command);
+                }
+            }
+        }
+
+        public void LoadServerCommands(Assembly ass)
+        {
+            foreach (var type in ass.GetTypes())
+            {
+                if (type.GetInterface(typeof(IServerCommand).FullName) != null)
+                {
+                    var command = (IServerCommand)Activator.CreateInstance(type);
+                    ServerCommands.Add(command.Name, command);
+                }
+            }
         }
 
         public void Start()
@@ -67,7 +101,7 @@ namespace Mothership.TelnetServer
             return true;
         }
 
-        private void startSessionThread(TcpClient user, TelnetSession session)
+        private void sessionThread(TcpClient user, TelnetSession session)
         {
             try
             {
@@ -77,11 +111,7 @@ namespace Mothership.TelnetServer
                     handleMessage(user, session, user.ReadLine());
                 }
             }
-            catch (IOException)
-            {
-                server_clientDisconnected(null, new ClientDisconnectedEventArgs(user));
-            }
-            catch (NullReferenceException)
+            catch (Exception)
             {
                 server_clientDisconnected(null, new ClientDisconnectedEventArgs(user));
             }
@@ -94,6 +124,38 @@ namespace Mothership.TelnetServer
                 string[] parts = message.Split(' ');
                 string cmd = parts[0];
                 string[] args = parts.Skip(1).ToArray();
+
+                switch (session.AccessLevel)
+                {
+                    case AccessLevel.Server:
+                        if (ServerCommands.ContainsKey(cmd))
+                            ServerCommands[cmd].Invoke(this, user, session, args);
+                        else
+                            user.WriteLine("No such command {0}! Type 'help' for help.", cmd);
+                        break;
+                    case AccessLevel.Client:
+                        if (ClientCommands.ContainsKey(cmd))
+                            ClientCommands[cmd].Invoke(this, user, session, args);
+                        else
+                            user.WriteLine("No such command {0}! Type 'help' for help.", cmd);
+                        break;
+                    case AccessLevel.Shell:
+                        if (cmd == "exit")
+                            session.ChangeAccessLevel(AccessLevel.Client);
+                        else
+                        {
+                            var response = ClientServer.SendCommand(session.SelectedClient, message);
+                            if (response.Failed)
+                                user.WriteLine("Failed! Reason: {0}", response.Message);
+                            else
+                                user.WriteLine(response.Message);
+                        }
+                        break;
+                }
+            }
+            catch (ArgumentLengthException ex)
+            {
+                user.WriteLine("{0} expected {1} argument(s), instead got {2}!", ex.Target, ex.Expected, ex.InvokedWith);
             }
             catch (IOException)
             {
@@ -117,7 +179,7 @@ namespace Mothership.TelnetServer
             users.Add(uid, e.Client);
 
             var session = new TelnetSession(uid);
-            session.SessionThread = new Thread(() => startSessionThread(e.Client, session));
+            session.SessionThread = new Thread(() => sessionThread(e.Client, session));
             session.SessionThread.Start();
             sessions.Add(uid, session);    
         }

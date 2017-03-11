@@ -8,7 +8,7 @@ namespace Mothership
         static void Main(string[] args)
         {
             var config = MothershipConfiguration.FromFile(args[0]);
-            var clientServer = new ClientServer.ClientServer(config.ClientPort);
+            var clientServer = new ClientServer.ClientServer(config.ClientPort, config.SslCertificate);
             clientServer.Start();
 
             var telnetServer = new TelnetServer.TelnetServer(config.TelnetUser, config.TelnetPassword, config.TelnetPort, config.TelnetMotd, clientServer);
