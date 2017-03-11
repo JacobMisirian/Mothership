@@ -56,12 +56,14 @@ namespace Mothership.Networking
         {
             while (true)
             {
+                TcpClient currentClient = null;
                 try
                 {
                     Thread.Sleep(50);
                     var disconnected = new List<TcpClient>();
                     foreach (var client in internalClientList)
                     {
+                        currentClient = client;
                         if (client.BaseClient.Client.Poll(0, SelectMode.SelectRead))
                         {
                             byte[] checkConn = new byte[1];
@@ -72,7 +74,11 @@ namespace Mothership.Networking
                     for (int i = 0; i < disconnected.Count; i++)
                         OnClientDisconnected(disconnected[i]);
                 }
-                catch { }
+                catch (Exception)
+                {
+                    if (currentClient != null)
+                        OnClientDisconnected(currentClient);
+                }
             }
         }
 

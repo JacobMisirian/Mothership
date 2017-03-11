@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -57,7 +56,7 @@ namespace Mothership.ClientServer
         {
             server.Stop();
         }
-        
+
         private void server_clientConnected(object sender, ClientConnectedEventArgs e)
         {
             e.Client.Banner = ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(e.Client.ReadLine()));
