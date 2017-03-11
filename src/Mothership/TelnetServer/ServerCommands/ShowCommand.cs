@@ -11,11 +11,16 @@ namespace Mothership.TelnetServer.ServerCommands
         {
             ArgumentLengthException.ValidateArgumentLength(Name, args, 0);
 
-            user.WriteLine("Established Connections");
-            user.WriteLine("########################");
-            foreach (var client in server.ClientServer.Clients.Keys)
-                user.WriteLineCentered("#", client , "#", 24);
-            user.WriteLine("########################");
+            if (server.ClientServer.Clients.Count == 0)
+                user.WriteLine("No connections.");
+            else
+            {
+                user.WriteLine("Established Connections");
+                user.WriteLine("########################");
+                foreach (var client in server.ClientServer.Clients.Keys)
+                    user.WriteLineCentered("#", client, "#", 24);
+                user.WriteLine("########################");
+            }
         }
     }
 }

@@ -24,6 +24,11 @@ namespace Mothership.ClientServer
 
             Clients = new Dictionary<string, TcpClient>();
         }
+
+        public void Disconnect(TcpClient client)
+        {
+            server_clientDisconnected(null, new ClientDisconnectedEventArgs(client));
+        }
         
         public ClientResponse SendCommand(string uid, string cmd)
         {

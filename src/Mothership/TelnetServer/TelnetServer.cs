@@ -16,14 +16,15 @@ namespace Mothership.TelnetServer
         public Dictionary<string, IClientCommand> ClientCommands { get; private set; }
         public Dictionary<string, IServerCommand> ServerCommands { get; private set; }
 
+        public Dictionary<string, TelnetSession> Sessions { get; private set; }
+        public Dictionary<string, TcpClient> Users { get; private set; }
+
         private string telnetUser;
         private string telnetPass;
         private string motd;
 
         private TcpServer server;
 
-        private Dictionary<string, TcpClient> users;
-        private Dictionary<string, TelnetSession> sessions;
 
         public TelnetServer(string telnetUser, string telnetPass, int port, string motd, ClientServer.ClientServer clientServer)
         {
@@ -34,14 +35,19 @@ namespace Mothership.TelnetServer
 
             server = new TcpServer(port);
 
-            users = new Dictionary<string, TcpClient>();
-            sessions = new Dictionary<string, TelnetSession>();
+            Users = new Dictionary<string, TcpClient>();
+            Sessions = new Dictionary<string, TelnetSession>();
 
             ClientCommands = new Dictionary<string, IClientCommand>();
             ServerCommands = new Dictionary<string, IServerCommand>();
 
             LoadClientCommands(Assembly.GetExecutingAssembly());
             LoadServerCommands(Assembly.GetExecutingAssembly());
+        }
+
+        public void DisconnectClient(TcpClient client)
+        {
+            ClientServer.Disconnect(client);
         }
 
         public void LoadClientCommands(Assembly ass)
@@ -176,25 +182,25 @@ namespace Mothership.TelnetServer
             string uid = sessionNumber++.ToString();
             e.Client.UID = uid;
 
-            users.Add(uid, e.Client);
+            Users.Add(uid, e.Client);
 
             var session = new TelnetSession(uid);
             session.SessionThread = new Thread(() => sessionThread(e.Client, session));
             session.SessionThread.Start();
-            sessions.Add(uid, session);    
+            Sessions.Add(uid, session);    
         }
 
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
             try
             {
-                if (sessions.ContainsKey(e.Client.UID))
+                if (Sessions.ContainsKey(e.Client.UID))
                 {
-                    sessions[e.Client.UID].SessionThread.Abort();
-                    sessions.Remove(e.Client.UID);
+                    Sessions[e.Client.UID].SessionThread.Abort();
+                    Sessions.Remove(e.Client.UID);
                 }
-                if (users.ContainsKey(e.Client.UID))
-                    users.Remove(e.Client.UID);
+                if (Users.ContainsKey(e.Client.UID))
+                    Users.Remove(e.Client.UID);
                 e.Client.Close();
                
             }

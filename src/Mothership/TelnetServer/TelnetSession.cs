@@ -33,6 +33,7 @@ namespace Mothership.TelnetServer
             {
                 case AccessLevel.Server:
                     PromptLetter = PROMPT_SERVER;
+                    SelectedClient = string.Empty;
                     break;
                 case AccessLevel.Client:
                     PromptLetter = PROMPT_CLIENT;
