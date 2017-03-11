@@ -114,7 +114,9 @@ namespace Mothership.TelnetServer
                 while (true)
                 {
                     user.Write(session.GetPrompt());
-                    handleMessage(user, session, user.ReadLine());
+                    string input = user.ReadLine();
+                    if (input.Trim() != string.Empty)
+                        handleMessage(user, session, input);
                 }
             }
             catch (Exception)
@@ -163,13 +165,9 @@ namespace Mothership.TelnetServer
             {
                 user.WriteLine("{0} expected {1} argument(s), instead got {2}!", ex.Target, ex.Expected, ex.InvokedWith);
             }
-            catch (IOException)
+            catch (Exception ex)
             {
-                server_clientDisconnected(null, new ClientDisconnectedEventArgs(user));
-            }
-            catch (NullReferenceException)
-            {
-                server_clientDisconnected(null, new ClientDisconnectedEventArgs(user));
+                user.WriteLine("Error! Reason: {0}", ex.ToString());
             }
         }
 

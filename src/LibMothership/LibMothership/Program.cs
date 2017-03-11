@@ -1,28 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 using LibMothership.Networking;
 
 namespace LibMothership
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var conn = new MothershipConnection(args[0], Convert.ToInt32(args[1]));
-
-            new Thread(() => readThread(conn)).Start();
-            while (true)
-                conn.Send(Console.ReadLine());
+            var conn = new LibMothership.Networking.MothershipConnection(args[0], Convert.ToInt32(args[1]));
+            conn.ServerMessageReceived += connection_messageReceived;
+            
         }
 
-        static void readThread(MothershipConnection conn0)
-        {
-            while (true)
-                Console.WriteLine(conn0.Read());
-        }
+        static void connection_messageReceived(object sender, ServerMessageReceivedEventArgs e)
+        { }
     }
 }

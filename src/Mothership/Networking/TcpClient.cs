@@ -44,18 +44,38 @@ namespace Mothership.Networking
             realClient.Close();
         }
 
+        private bool reading = false;
         public string ReadLine()
         {
-            return Reader.ReadLine();
+            while (reading) ;
+            reading = true;
+            try
+            {
+                return Reader.ReadLine();
+            }
+            finally
+            {
+                reading = false;
+            }
         }
 
+        private bool writing = false;
         public void Write(string strf, params object[] args)
         {
-            if (args.Length == 0)
-                Writer.Write(strf);
-            else
-                Writer.Write(string.Format(strf, args));
-            Writer.Flush();
+            while (writing) ;
+            writing = true;
+            try
+            {
+                if (args.Length == 0)
+                    Writer.Write(strf);
+                else
+                    Writer.Write(string.Format(strf, args));
+                Writer.Flush();
+            }
+            finally
+            {
+                writing = false;
+            }
 
         }
         public void WriteLine(string strf = "", params object[] args)

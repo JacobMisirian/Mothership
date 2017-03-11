@@ -10,10 +10,10 @@ namespace Mothership.TelnetServer.ServerCommands
         public void Invoke(TelnetServer server, TcpClient user, TelnetSession session, params string[] args)
         {
             user.WriteLine("Available Server Commands");
-            user.WriteLine("############################");
+            user.WriteLine("################################");
             foreach (var command in server.ServerCommands.Values)
-                user.WriteLineCentered("#", command.Syntax, "#", 28);
-            user.WriteLine("############################");
+                user.WriteLineCentered("#", command.Syntax, "#", 32);
+            user.WriteLine("################################");
         }
     }
 }
