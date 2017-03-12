@@ -29,7 +29,6 @@ namespace Mothership.ClientServer
 
             aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
             aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
-
         }
 
         public void Disconnect(TcpClient client)

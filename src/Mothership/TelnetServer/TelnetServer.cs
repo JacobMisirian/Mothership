@@ -152,11 +152,27 @@ namespace Mothership.TelnetServer
                             session.ChangeAccessLevel(AccessLevel.Client);
                         else
                         {
-                            var response = ClientServer.SendCommand(session.SelectedClient, message);
-                            if (response.Failed)
-                                user.WriteLine("Failed! Reason: {0}", response.Message);
+                            if (session.SelectedClient == "all")
+                            {
+                                foreach (string client in ClientServer.Clients.Keys)
+                                {
+                                    user.WriteLine("Client {0}", client);
+                                    user.WriteLine("#################################");
+                                    var response = ClientServer.SendCommand(client, message);
+                                    if (response.Failed)
+                                        user.WriteLine("Failed! Reason: {0}", response.Message);
+                                    else
+                                        user.WriteLine(response.Message);
+                                }
+                            }
                             else
-                                user.WriteLine(response.Message);
+                            {
+                                var response = ClientServer.SendCommand(session.SelectedClient, message);
+                                if (response.Failed)
+                                    user.WriteLine("Failed! Reason: {0}", response.Message);
+                                else
+                                    user.WriteLine(response.Message);
+                            }
                         }
                         break;
                 }

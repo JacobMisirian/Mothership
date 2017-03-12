@@ -11,6 +11,13 @@ namespace Mothership.TelnetServer.ServerCommands
         {
             ArgumentLengthException.ValidateArgumentLength(Name, args, 1);
 
+            if (args[0] == "all")
+            {
+                session.SelectClient("all");
+                session.ChangeAccessLevel(AccessLevel.Shell);
+                return;
+            }
+
             string selectedClient = string.Empty;
             foreach (var client in server.ClientServer.Clients.Keys)
             {
