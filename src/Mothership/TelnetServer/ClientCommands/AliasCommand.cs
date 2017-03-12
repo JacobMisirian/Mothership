@@ -11,6 +11,12 @@ namespace Mothership.TelnetServer.ClientCommands
         {
             ArgumentLengthException.ValidateArgumentLength(Name, args, 1);
 
+            if (args[0] == "all")
+            {
+                user.WriteLine("Error! Cannot alias client to 'all', reserved word!");
+                return;
+            }
+
             var temp = server.ClientServer.Clients[session.SelectedClient];
             temp.UID = args[0];
             server.ClientServer.Clients.Remove(session.SelectedClient);

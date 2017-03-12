@@ -11,6 +11,12 @@ namespace Mothership.TelnetServer.ServerCommands
         {
             ArgumentLengthException.ValidateArgumentLength(Name, args, 2);
 
+            if (args[1] == "all")
+            {
+                user.WriteLine("Error! Cannot alias client to 'all', reserved word!");
+                return;
+            }
+
             string selectedClient = string.Empty;
             foreach (var client in server.ClientServer.Clients.Keys)
             {
