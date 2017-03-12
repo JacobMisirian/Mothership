@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="ClientServer\ClientResponse.cs" />
     <Compile Include="ClientServer\ClientServer.cs" />
+    <Compile Include="Crypto\AES.cs" />
     <Compile Include="MothershipConfiguration.cs" />
     <Compile Include="Networking\ClientConnectedEventArgs.cs" />
     <Compile Include="Networking\ClientDisconnectedEventArgs.cs" />

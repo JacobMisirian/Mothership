@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 
+using Mothership.Crypto;
 using Mothership.Networking;
 
 namespace Mothership.ClientServer
@@ -13,15 +13,23 @@ namespace Mothership.ClientServer
     {
         public const int CLIENT_UID_LENGTH = 0x07;
 
+        public const int CRYPTO_KEY_SEED = 0xBADA55;
+        public const int CRYPTO_IV_SEED = 0x0C0BABE;
+
         public Dictionary<string, TcpClient> Clients { get; private set; }
 
         private TcpServer server;
+        private byte[] aesKey;
+        private byte[] aesIV;
 
         public ClientServer(int port, X509Certificate certificate)
         {
             server = new TcpServer(port, certificate);
-
             Clients = new Dictionary<string, TcpClient>();
+
+            aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
+            aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
+
         }
 
         public void Disconnect(TcpClient client)
@@ -35,8 +43,14 @@ namespace Mothership.ClientServer
             {
                 if (!Clients.ContainsKey(uid))
                     return new ClientResponse(true, string.Format("No such uid {0}!", uid));
-                Clients[uid].WriteLine(cmd);
-                return new ClientResponse(false, ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(Clients[uid].ReadLine())));
+
+                byte[] cmdData = ASCIIEncoding.ASCII.GetBytes(cmd);
+                byte[] cmdEncrypted = AES.Encrypt(aesKey, aesIV, cmdData);
+                Clients[uid].WriteLine(Convert.ToBase64String(cmdEncrypted));
+
+                byte[] respEncrypted = Convert.FromBase64String(Clients[uid].ReadLine());
+                byte[] respData = AES.Decrypt(aesKey, aesIV, respEncrypted);
+                return new ClientResponse(false, ASCIIEncoding.ASCII.GetString(respData));
             }
             catch (Exception ex)
             {

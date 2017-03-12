@@ -9,10 +9,15 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
+using LibMothership.Crypto;
+
 namespace LibMothership.Networking
 {
     public class MothershipConnection
     {
+        public const int CRYPTO_KEY_SEED = 0xBADA55;
+        public const int CRYPTO_IV_SEED = 0x0C0BABE;
+
         public string IP { get; private set; }
         public int Port { get; private set; }
 
@@ -25,6 +30,9 @@ namespace LibMothership.Networking
         private TcpClient client;
         private StreamReader reader;
         private StreamWriter writer;
+
+        private byte[] aesKey;
+        private byte[] aesIV;
 
         public MothershipConnection(string ip, int port)
         {
@@ -40,6 +48,9 @@ namespace LibMothership.Networking
             reader = new StreamReader(stream);
             writer = new StreamWriter(stream);
             writer.AutoFlush = true;
+
+            aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
+            aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
         }   
 
         public void Close()
@@ -61,9 +72,11 @@ namespace LibMothership.Networking
             }
         }
 
-        public void Send(string data)
+        public void Send(string msg)
         {
-            writer.WriteLine(Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(data)));
+            byte[] data = ASCIIEncoding.ASCII.GetBytes(msg);
+            byte[] encrypted = AES.Encrypt(aesKey, aesIV, data);
+            writer.WriteLine(Convert.ToBase64String(encrypted));
         }
 
         public void SendBanner()
@@ -89,7 +102,11 @@ namespace LibMothership.Networking
         private void messageListenerThread()
         {
             while (true)
-                OnServerMessageReceived(reader.ReadLine());
+            {
+                byte[] encrypted = Convert.FromBase64String(reader.ReadLine());
+                byte[] decrypted = AES.Decrypt(aesKey, aesIV, encrypted);
+                OnServerMessageReceived(ASCIIEncoding.ASCII.GetString(decrypted));
+            }
         }
 
         protected virtual void OnServerConnected()
@@ -114,9 +131,23 @@ namespace LibMothership.Networking
 
             if (Commands.ContainsKey(cmd))
             {
-                StringBuilder output = new StringBuilder();
-                Commands[cmd].Invoke(this, output, args);
-                Send(output.ToString());
+                try
+                {
+                    StringBuilder output = new StringBuilder();
+                    Commands[cmd].Invoke(this, output, args);
+                    Send(output.ToString());
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        Send(ex.ToString());
+                    }
+                    catch
+                    {
+                        OnServerDisconnected();
+                    }
+                }
             }
             else
             {

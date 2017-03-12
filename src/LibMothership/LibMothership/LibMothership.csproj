@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentLengthException.cs" />
+    <Compile Include="Crypto\AES.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="Networking\MothershipConnection.cs" />
     <Compile Include="Networking\ServerConnectedEventArgs.cs" />
