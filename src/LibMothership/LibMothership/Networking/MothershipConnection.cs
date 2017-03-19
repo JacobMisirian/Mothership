@@ -34,6 +34,8 @@ namespace LibMothership.Networking
         private byte[] aesKey;
         private byte[] aesIV;
 
+        private int ping = 0;
+
         public MothershipConnection(string ip, int port)
         {
             IP = ip;
@@ -78,6 +80,13 @@ namespace LibMothership.Networking
             byte[] encrypted = AES.Encrypt(aesKey, aesIV, data);
             writer.WriteLine(Convert.ToBase64String(encrypted));
         }
+        
+        public string Read()
+        {
+            byte[] encrypted = Convert.FromBase64String(reader.ReadLine());
+            byte[] decrypted = AES.Decrypt(aesKey, aesIV, encrypted);
+            return ASCIIEncoding.ASCII.GetString(decrypted);
+        }
 
         public void SendBanner()
         {
@@ -97,15 +106,22 @@ namespace LibMothership.Networking
             LoadCommandsFromAssembly(Assembly.GetExecutingAssembly());
 
             new Thread(() => messageListenerThread()).Start();
+            new Thread(() => pingCheckerThread()).Start();
         }
 
         private void messageListenerThread()
         {
             while (true)
+                OnServerMessageReceived(Read());
+        }
+
+        private void pingCheckerThread()
+        {
+            while (true)
             {
-                byte[] encrypted = Convert.FromBase64String(reader.ReadLine());
-                byte[] decrypted = AES.Decrypt(aesKey, aesIV, encrypted);
-                OnServerMessageReceived(ASCIIEncoding.ASCII.GetString(decrypted));
+                Thread.Sleep(1000);
+                if (ping++ > 10)
+                    OnServerConnected();
             }
         }
 
@@ -125,6 +141,13 @@ namespace LibMothership.Networking
 
         protected virtual void OnServerMessageReceived(string message)
         {
+            if (message == "_PING")
+            {
+                Send("PONG");
+                ping = 0;
+                return;
+            }
+
             string[] parts = message.Split(' ');
             string cmd = parts[0];
             string[] args = parts.Skip(1).ToArray();

@@ -19,6 +19,9 @@ namespace Mothership.Networking
         public StreamReader Reader { get; private set; }
         public StreamWriter Writer { get; private set; }
 
+        public Thread PingThread { get; set; }
+        public bool Pong { get; set; }
+
         private System.Net.Sockets.TcpClient realClient;
 
         public TcpClient(System.Net.Sockets.TcpClient client, bool usingSsl = false, X509Certificate certificate = null)
@@ -37,6 +40,7 @@ namespace Mothership.Networking
                 Reader = new StreamReader(client.GetStream());
                 Writer = new StreamWriter(client.GetStream());
             }
+            Pong = false;
         }
 
         public void Close()

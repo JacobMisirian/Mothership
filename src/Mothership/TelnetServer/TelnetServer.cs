@@ -150,6 +150,8 @@ namespace Mothership.TelnetServer
                     case AccessLevel.Shell:
                         if (cmd == "exit")
                             session.ChangeAccessLevel(AccessLevel.Client);
+                        else if (cmd == "_PING")
+                            user.WriteLine("Error! Cannot manually send PING command!");
                         else
                         {
                             if (session.SelectedClient == "all")
