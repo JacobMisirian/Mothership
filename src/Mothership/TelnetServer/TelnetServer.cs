@@ -243,7 +243,10 @@ namespace Mothership.TelnetServer
                     Sessions.Remove(e.Client.UID);
                 }
                 if (Users.ContainsKey(e.Client.UID))
+                {
                     Users.Remove(e.Client.UID);
+                    SendSmsMessage("Oper {0} disconnected!", e.Client.UID);
+                }
                 e.Client.Close();
                
             }
@@ -252,7 +255,6 @@ namespace Mothership.TelnetServer
 
             }
 
-            SendSmsMessage("Oper {0} disconnected!", e.Client.UID);
         }
     }
 }

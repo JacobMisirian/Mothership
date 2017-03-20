@@ -155,23 +155,23 @@ namespace Mothership.ClientServer
             e.Client.PingThread = new Thread(() => pingThread(e.Client));
             e.Client.PingThread.Start();
 
-            SendSmsMessage("Client {0} connected from {1}", e.Client.UID, e.Client.IP);
+            string[] bannerLines = e.Client.Banner.Split('\n');
+            SendSmsMessage("Client {0}@{1} connected from {2}. UID: {3}", bannerLines[0].Trim(), bannerLines[1].Trim(), e.Client.IP, e.Client.UID);
         }
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
             try
             {
                 if (Clients.ContainsKey(e.Client.UID))
+                {
                     Clients.Remove(e.Client.UID);
+                    SendSmsMessage("Client {0} disconnected.", e.Client.UID);
+                }
                 e.Client.PingThread.Abort();
                 e.Client.Close();
             }
             catch
             { }
-            finally
-            {
-                SendSmsMessage("Client {0} disconnected.", e.Client.UID);
-            }
         }
     }
 }

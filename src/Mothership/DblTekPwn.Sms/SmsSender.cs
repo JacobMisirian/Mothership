@@ -16,6 +16,8 @@ namespace DblTekPwn.SMS
             if (!phone.TestLogin())
                 return false;
 
+            content = content.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
+
             List<string> commandStrings = new List<string>();
 
             foreach (string number in numbers)
