@@ -14,9 +14,14 @@ namespace Mothership
         public string TelnetUser { get; set; }
         public string TelnetPassword { get; set; }
         public string TelnetMotd { get; set; }
-
+        
         public int ClientPort { get; private set; }
         public X509Certificate SslCertificate { get; private set; }
+
+        public string SmsServer { get; private set; }
+        public int SmsPort { get; private set; }
+        public int SmsSimNumber { get; private set; }
+        public string[] SmsNumbers { get; private set; }
 
         public MothershipConfiguration()
         {
@@ -24,6 +29,8 @@ namespace Mothership
             TelnetUser = "root";
             TelnetPassword = "toor";
             TelnetMotd = string.Empty;
+            SmsServer = string.Empty;
+            SmsSimNumber = 1;
         }
 
         public static MothershipConfiguration FromFile(string path)
@@ -56,6 +63,18 @@ namespace Mothership
                         break;
                     case "motd":
                         config.TelnetMotd = string.Join("\r\n", File.ReadAllLines(args[0]));
+                        break;
+                    case "smsserver":
+                        config.SmsServer = args[0];
+                        break;
+                    case "smsport":
+                        config.SmsPort = Convert.ToInt32(args[0]);
+                        break;
+                    case "smssimnum":
+                        config.SmsSimNumber = Convert.ToInt32(args[0]);
+                        break;
+                    case "smsnums":
+                        config.SmsNumbers = args;
                         break;
                 }
             }

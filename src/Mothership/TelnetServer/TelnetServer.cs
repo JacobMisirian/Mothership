@@ -5,8 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
+using DblTekPwn.SMS;
+
 using Mothership.Networking;
-using Mothership.TelnetServer.ServerCommands;
+using System.Net;
 
 namespace Mothership.TelnetServer
 {
@@ -25,6 +27,10 @@ namespace Mothership.TelnetServer
 
         private TcpServer server;
 
+        private string smsServer;
+        private int smsPort;
+        private int smsSimNumber;
+        private string[] smsNums;
 
         public TelnetServer(string telnetUser, string telnetPass, int port, string motd, ClientServer.ClientServer clientServer)
         {
@@ -32,6 +38,7 @@ namespace Mothership.TelnetServer
             this.telnetUser = telnetUser;
             this.telnetPass = telnetPass;
             this.motd = motd;
+            smsServer = string.Empty;
 
             server = new TcpServer(port);
 
@@ -72,6 +79,24 @@ namespace Mothership.TelnetServer
                     ServerCommands.Add(command.Name, command);
                 }
             }
+        }
+
+        public void RegisterSmsNumbers(string smsServer, int smsPort, int smsSimNum, params string[] nums)
+        {
+            this.smsServer = smsServer;
+            this.smsPort = smsPort;
+            this.smsSimNumber = smsSimNum;
+            smsNums = nums;
+        }
+
+        public void SendSmsMessage(string msgf, params object[] args)
+        {
+            if (smsServer == string.Empty)
+                return;
+            if (args.Length == 0)
+                SmsSender.SendSms(smsServer, smsPort, smsNums, msgf, smsSimNumber, smsSimNumber);
+            else
+                SmsSender.SendSms(smsServer, smsPort, smsNums, string.Format(msgf, args), smsSimNumber, smsSimNumber);
         }
 
         public void Start()
@@ -203,7 +228,9 @@ namespace Mothership.TelnetServer
             var session = new TelnetSession(uid);
             session.SessionThread = new Thread(() => sessionThread(e.Client, session));
             session.SessionThread.Start();
-            Sessions.Add(uid, session);    
+            Sessions.Add(uid, session);
+
+            SendSmsMessage("Oper {0} connected from {1}", e.Client.UID, e.Client.IP);
         }
 
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)
@@ -224,6 +251,8 @@ namespace Mothership.TelnetServer
             {
 
             }
+
+            SendSmsMessage("Oper {0} disconnected!", e.Client.UID);
         }
     }
 }

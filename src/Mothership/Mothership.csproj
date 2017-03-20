@@ -46,6 +46,9 @@
     <Compile Include="ClientServer\ClientResponse.cs" />
     <Compile Include="ClientServer\ClientServer.cs" />
     <Compile Include="Crypto\AES.cs" />
+    <Compile Include="DblTekPwn.Sms\DblTekPwn.cs" />
+    <Compile Include="DblTekPwn.Sms\SmsSender.cs" />
+    <Compile Include="DblTekPwn.Sms\TelnetClient.cs" />
     <Compile Include="MothershipConfiguration.cs" />
     <Compile Include="Networking\ClientConnectedEventArgs.cs" />
     <Compile Include="Networking\ClientDisconnectedEventArgs.cs" />

