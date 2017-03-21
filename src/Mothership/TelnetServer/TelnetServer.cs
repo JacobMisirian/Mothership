@@ -21,26 +21,18 @@ namespace Mothership.TelnetServer
         public Dictionary<string, TelnetSession> Sessions { get; private set; }
         public Dictionary<string, TcpClient> Users { get; private set; }
 
-        private string telnetUser;
-        private string telnetPass;
-        private string motd;
+        private MothershipConfiguration config;
 
         private TcpServer server;
 
-        private string smsServer;
-        private int smsPort;
-        private int smsSimNumber;
-        private string[] smsNums;
+        private EmailSender email;
 
-        public TelnetServer(string telnetUser, string telnetPass, int port, string motd, ClientServer.ClientServer clientServer)
+        public TelnetServer(MothershipConfiguration config, ClientServer.ClientServer clientServer)
         {
-            ClientServer = clientServer;
-            this.telnetUser = telnetUser;
-            this.telnetPass = telnetPass;
-            this.motd = motd;
-            smsServer = string.Empty;
+            this.config = config;
 
-            server = new TcpServer(port);
+            ClientServer = clientServer;
+            server = new TcpServer(config.TelnetPort);
 
             Users = new Dictionary<string, TcpClient>();
             Sessions = new Dictionary<string, TelnetSession>();
@@ -50,6 +42,9 @@ namespace Mothership.TelnetServer
 
             LoadClientCommands(Assembly.GetExecutingAssembly());
             LoadServerCommands(Assembly.GetExecutingAssembly());
+
+            if (config.SmtpUser != string.Empty)
+                email = new EmailSender(config.SmtpServer, config.SmtpPort, config.SmtpUser, config.SmtpPass);
         }
 
         public void DisconnectClient(TcpClient client)
@@ -81,22 +76,27 @@ namespace Mothership.TelnetServer
             }
         }
 
-        public void RegisterSmsNumbers(string smsServer, int smsPort, int smsSimNum, params string[] nums)
-        {
-            this.smsServer = smsServer;
-            this.smsPort = smsPort;
-            this.smsSimNumber = smsSimNum;
-            smsNums = nums;
-        }
-
         public void SendSmsMessage(string msgf, params object[] args)
         {
-            if (smsServer == string.Empty)
+            if (config.SmsServer == string.Empty)
                 return;
             if (args.Length == 0)
-                SmsSender.SendSms(smsServer, smsPort, smsNums, msgf, smsSimNumber, smsSimNumber);
+                SmsSender.SendSms(config.SmsServer, config.SmsPort, config.SmsNumbers, msgf, config.SmsSimNumber, config.SmsSimNumber);
             else
-                SmsSender.SendSms(smsServer, smsPort, smsNums, string.Format(msgf, args), smsSimNumber, smsSimNumber);
+                SmsSender.SendSms(config.SmsServer, config.SmsPort, config.SmsNumbers, string.Format(msgf, args), config.SmsSimNumber, config.SmsSimNumber);
+        }
+
+        public void SendSmtpMessage(string msgf, params object[] args)
+        {
+            if (email == null)
+                return;
+            foreach (var receiver in config.SmtpReceivers)
+            {
+                if (args.Length == 0)
+                    email.Send(receiver, string.Format("Mothership - {0}", DateTime.Now.Date), msgf);
+                else
+                    email.Send(receiver, string.Format("Mothership - {0}", DateTime.Now.Date), string.Format(msgf, args));
+            }
         }
 
         public void Start()
@@ -109,7 +109,7 @@ namespace Mothership.TelnetServer
 
         private bool handleLogin(TcpClient user)
         {
-            user.WriteLine(motd);
+            user.WriteLine(config.TelnetMotd);
             user.WriteLine();
             user.WriteLine("Press return to continue.");
             user.ReadLine();
@@ -120,7 +120,7 @@ namespace Mothership.TelnetServer
             user.Write("Password: ");
             string enteredPass = user.ReadLine();
 
-            if (enteredUser != telnetUser || enteredPass != telnetPass)
+            if (enteredUser != config.TelnetUser || enteredPass != config.TelnetPassword)
             {
                 user.WriteLine("Incorrect credentials!");
                 user.WriteLine("Terminating connection...");
@@ -231,6 +231,7 @@ namespace Mothership.TelnetServer
             Sessions.Add(uid, session);
 
             SendSmsMessage("Oper {0} connected from {1}", e.Client.UID, e.Client.IP);
+            SendSmtpMessage("Oper {0} connected from {1}", e.Client.UID, e.Client.IP);
         }
 
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e)
@@ -246,6 +247,7 @@ namespace Mothership.TelnetServer
                 {
                     Users.Remove(e.Client.UID);
                     SendSmsMessage("Oper {0} disconnected!", e.Client.UID);
+                    SendSmtpMessage("Oper {0} disconnected!", e.Client.UID);
                 }
                 e.Client.Close();
                

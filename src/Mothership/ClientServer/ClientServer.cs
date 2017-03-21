@@ -21,37 +21,27 @@ namespace Mothership.ClientServer
 
         public Dictionary<string, TcpClient> Clients { get; private set; }
 
+        private MothershipConfiguration config;
+
         private TcpServer server;
+
         private byte[] aesKey;
         private byte[] aesIV;
 
-        private string smsServer;
-        private int smsPort;
-        private int smsSimNumber;
-        private string[] smsNums;
-
-        public ClientServer(int port, X509Certificate certificate)
+        public ClientServer(MothershipConfiguration config)
         {
-            server = new TcpServer(port, certificate);
+            this.config = config;
+
+            server = new TcpServer(config.ClientPort, config.SslCertificate);
             Clients = new Dictionary<string, TcpClient>();
 
             aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
             aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
-
-            smsServer = string.Empty;
         }
 
         public void Disconnect(TcpClient client)
         {
             server_clientDisconnected(null, new ClientDisconnectedEventArgs(client));
-        }
-
-        public void RegisterSmsNumbers(string smsServer, int smsPort, int smsSimNum, params string[] nums)
-        {
-            this.smsServer = smsServer;
-            this.smsPort = smsPort;
-            this.smsSimNumber = smsSimNum;
-            smsNums = nums;
         }
 
         private bool sendingCommand = false;
@@ -95,12 +85,12 @@ namespace Mothership.ClientServer
 
         public void SendSmsMessage(string msgf, params object[] args)
         {
-            if (smsServer == string.Empty)
+            if (config.SmsServer == string.Empty)
                 return;
             if (args.Length == 0)
-                SmsSender.SendSms(smsServer, smsPort, smsNums, msgf, smsSimNumber, smsSimNumber);
+                SmsSender.SendSms(config.SmsServer, config.SmsPort, config.SmsNumbers, msgf, config.SmsSimNumber, config.SmsSimNumber);
             else
-                SmsSender.SendSms(smsServer, smsPort, smsNums, string.Format(msgf, args), smsSimNumber, smsSimNumber);
+                SmsSender.SendSms(config.SmsServer, config.SmsPort, config.SmsNumbers, string.Format(msgf, args), config.SmsSimNumber, config.SmsSimNumber);
         }
 
         public void Start()

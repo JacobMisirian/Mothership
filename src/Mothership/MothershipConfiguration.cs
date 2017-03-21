@@ -23,14 +23,25 @@ namespace Mothership
         public int SmsSimNumber { get; private set; }
         public string[] SmsNumbers { get; private set; }
 
+        public string SmtpServer { get; private set; }
+        public int SmtpPort { get; private set; }
+        public string SmtpUser { get; private set; }
+        public string SmtpPass { get; private set; }
+        public string[] SmtpReceivers { get; private set; }
+
         public MothershipConfiguration()
         {
             TelnetPort = 23;
             TelnetUser = "root";
             TelnetPassword = "toor";
             TelnetMotd = string.Empty;
+
             SmsServer = string.Empty;
             SmsSimNumber = 1;
+
+            SmtpServer = "smtp.gmail.com";
+            SmtpPort = 587;
+
         }
 
         public static MothershipConfiguration FromFile(string path)
@@ -75,6 +86,21 @@ namespace Mothership
                         break;
                     case "smsnums":
                         config.SmsNumbers = args;
+                        break;
+                    case "smtpserver":
+                        config.SmtpServer = args[0];
+                        break;
+                    case "smtpport":
+                        config.SmtpPort = Convert.ToInt32(args[0]);
+                        break;
+                    case "smtpuser":
+                        config.SmtpUser = args[0];
+                        break;
+                    case "smtppass":
+                        config.SmtpPass = string.Join(" ", args);
+                        break;
+                    case "smtpreceivers":
+                        config.SmtpReceivers = args;
                         break;
                 }
             }
