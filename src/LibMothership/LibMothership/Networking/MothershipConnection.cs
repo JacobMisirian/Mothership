@@ -53,7 +53,7 @@ namespace LibMothership.Networking
 
             aesKey = AES.Generate16ByteArrayFromSeed(CRYPTO_KEY_SEED);
             aesIV = AES.Generate16ByteArrayFromSeed(CRYPTO_IV_SEED);
-        }   
+        }
 
         public void Close()
         {
@@ -80,7 +80,7 @@ namespace LibMothership.Networking
             byte[] encrypted = AES.Encrypt(aesKey, aesIV, data);
             writer.WriteLine(Convert.ToBase64String(encrypted));
         }
-        
+
         public string Read()
         {
             byte[] encrypted = Convert.FromBase64String(reader.ReadLine());
@@ -111,8 +111,15 @@ namespace LibMothership.Networking
 
         private void messageListenerThread()
         {
-            while (true)
-                OnServerMessageReceived(Read());
+            try
+            {
+                while (true)
+                    OnServerMessageReceived(Read());
+            }
+            catch
+            {
+                OnServerConnected();
+            }
         }
 
         private void pingCheckerThread()
@@ -121,7 +128,7 @@ namespace LibMothership.Networking
             {
                 Thread.Sleep(1000);
                 if (ping++ > 10)
-                    OnServerConnected();
+                    OnServerDisconnected();
             }
         }
 
