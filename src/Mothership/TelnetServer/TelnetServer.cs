@@ -43,7 +43,7 @@ namespace Mothership.TelnetServer
             LoadClientCommands(Assembly.GetExecutingAssembly());
             LoadServerCommands(Assembly.GetExecutingAssembly());
 
-            if (config.SmtpUser != string.Empty)
+            if (config.SmtpUser != string.Empty && config.SmtpUser != null)
                 email = new EmailSender(config.SmtpServer, config.SmtpPort, config.SmtpUser, config.SmtpPass);
         }
 
