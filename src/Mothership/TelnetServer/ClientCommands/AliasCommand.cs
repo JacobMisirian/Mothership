@@ -18,11 +18,16 @@ namespace Mothership.TelnetServer.ClientCommands
             }
 
             var temp = server.ClientServer.Clients[session.SelectedClient];
+            string selectedClient = temp.UID;
             temp.UID = args[0];
             server.ClientServer.Clients.Remove(session.SelectedClient);
             server.ClientServer.Clients.Add(temp.UID, temp);
 
             session.SelectClient(temp.UID);
+
+            foreach (var session_ in server.Sessions.Values)
+                if (session_.SelectedClient == selectedClient)
+                    session_.SelectClient(args[1]);
         }
     }
 }
