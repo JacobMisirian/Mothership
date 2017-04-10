@@ -84,7 +84,10 @@ namespace Mothership.Networking
         }
         public void WriteLine(string strf = "", params object[] args)
         {
-            Write(string.Format(strf + "\r\n", args));
+            if (args.Length == 0)
+                Write(strf + "\r\n");
+            else
+                Write(string.Format(strf + "\r\n", args));
         }
 
         public void WriteLineCentered(string pre, string content, string suf, int length)

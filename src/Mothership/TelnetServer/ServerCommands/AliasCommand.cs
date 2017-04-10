@@ -37,6 +37,10 @@ namespace Mothership.TelnetServer.ServerCommands
             temp.UID = args[1];
             server.ClientServer.Clients.Remove(selectedClient);
             server.ClientServer.Clients.Add(temp.UID, temp);
+
+            foreach (var session_ in server.Sessions.Values)
+                if (session_.SelectedClient == selectedClient)
+                    session_.SelectClient(args[1]);
         }
     }
 }
