@@ -48,6 +48,8 @@
     <Compile Include="Manager\IServerCommand.cs" />
     <Compile Include="Manager\MothershipTelnetServer.cs" />
     <Compile Include="Manager\MothershipTelnetSession.cs" />
+    <Compile Include="Manager\ServerCommands\WhoCommand.cs" />
+    <Compile Include="Manager\TelnetUserLevel.cs" />
     <Compile Include="Networking\Client.cs" />
     <Compile Include="Networking\ClientConnectedEventArgs.cs" />
     <Compile Include="Networking\ClientDisconnectedEventArgs.cs" />
@@ -58,7 +60,6 @@
   <ItemGroup>
     <Folder Include="Manager\BuiltinClientCommands\" />
     <Folder Include="Manager\ClientMacros\" />
-    <Folder Include="Manager\ServerCommands\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

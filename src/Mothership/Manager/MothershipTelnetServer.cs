@@ -8,20 +8,21 @@ using System.Text;
 
 namespace Mothership.Manager {
     public class MothershipTelnetServer {
-        private MothershipLp lp;
-        private Server server;
+        public MothershipLp Lp { get; private set; }
 
-        private Dictionary<string, MothershipTelnetSession> sessions;
+        public Dictionary<string, MothershipTelnetSession> Sessions;
 
         public Dictionary<string, IServerCommand> ServerCommands { get; private set; }
         public Dictionary<string, IBuiltinCommand> BuiltinCommands { get; private set; }
         public Dictionary<string, IClientMacro> ClientMacros { get; private set; }
 
+        private Server server;
+
         public MothershipTelnetServer(int port, MothershipLp lp) {
-            this.lp = lp;
+            Lp = lp;
             server = new Server(port);
 
-            sessions = new Dictionary<string, MothershipTelnetSession>();
+            Sessions = new Dictionary<string, MothershipTelnetSession>();
 
             ServerCommands = new Dictionary<string, IServerCommand>();
             BuiltinCommands = new Dictionary<string, IBuiltinCommand>();
@@ -50,20 +51,20 @@ namespace Mothership.Manager {
         }
 
         private void server_clientConnected(object sender, ClientConnectedEventArgs e) {
-            MothershipTelnetSession session = new MothershipTelnetSession(e.Client);
+            MothershipTelnetSession session = new MothershipTelnetSession(this, e.Client);
 
             if (!session.Authenticate()) {
                 server_clientDisconnected(null, new ClientDisconnectedEventArgs(e.Client));
             }
 
             session.StartInThread();
-            sessions.Add(session.Client.Id, session);
+            Sessions.Add(session.Client.Id, session);
         }
 
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e) {
-            if (sessions.ContainsKey(e.Client.Id)) {
-                sessions[e.Client.Id].Stop();
-                sessions.Remove(e.Client.Id);
+            if (Sessions.ContainsKey(e.Client.Id)) {
+                Sessions[e.Client.Id].Stop();
+                Sessions.Remove(e.Client.Id);
             }
         }
     }

@@ -5,5 +5,6 @@ using System.Text;
 
 namespace Mothership.Lp {
     public class MothershipLp {
+        public Dictionary<string, MothershipConnection> Connections { get; private set; }
     }
 }

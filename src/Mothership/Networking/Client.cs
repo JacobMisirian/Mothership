@@ -20,6 +20,8 @@ namespace Mothership.Networking
 
         public Client(TcpClient tcpClient) {
             BaseTcpClient = tcpClient;
+            reader = new StreamReader(tcpClient.GetStream());
+            writer = new StreamWriter(tcpClient.GetStream());
         }
 
         public void Close() {
