@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Mothership.Networking
-{
-    public class ClientConnectedEventArgs : EventArgs
-    {
-        public TcpClient Client { get; private set; }
-
-        public ClientConnectedEventArgs(TcpClient client)
-        {
+namespace Mothership.Networking {
+    public class ClientConnectedEventArgs : EventArgs {
+        public Client Client { get; private set; }
+        public ClientConnectedEventArgs(Client client) {
             Client = client;
         }
     }
