@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 
@@ -16,6 +17,7 @@ namespace Mothership.Lp {
         public bool WaitingForPong { get; set; }
 
         private Thread pingThread;
+        private Thread pongThread;
 
         private MothershipLp lp;
 
@@ -27,29 +29,51 @@ namespace Mothership.Lp {
             OperatingSystem = os;
             Username = username;
 
-            pingThread = new Thread(() => checkConnection());
-           // pingThread.Start();
+            pingThread = new Thread(() => sendPings());
+            pongThread = new Thread(() => getPongs());
+            
+            pingThread.Start();
+            pongThread.Start();
         }
 
-        public void checkConnection() {
-            while (true) {
-                WaitingForPong = true;
-                Client.WriteLine("_PING");
-                Thread.Sleep(5000);
-                if (Client.ReadLine() == "PONG") {
+        private void sendPings() {
+            try {
+                while (true) {
+                    Client.WriteLine("_PING");
+                    WaitingForPong = true;
+                    Thread.Sleep(10000);
+
+                    if (WaitingForPong) {
+                        lp.EndConnection(Client.Id);
+                    }
+
+                }
+            } catch {
+                lp.EndConnection(Client.Id);
+            }
+        }
+
+        private void getPongs() {
+            try {
+                while (true) {
+                    while (!WaitingForPong) Thread.Sleep(20);
+                    Client.ReadLine();
                     WaitingForPong = false;
                 }
-
-                if (WaitingForPong) {
-                    lp.EndConnection(Client.Id);
-                }
+            } catch {
+                lp.EndConnection(Client.Id);
             }
         }
 
         public string Query(string query) {
-            Client.WriteLine(query);
+            try {
+                Client.WriteLine(query);
 
-            return Client.ReadLine();
+                return Client.ReadLine();
+            } catch {
+                lp.EndConnection(Client.Id);
+                return string.Empty;
+            }
         }
     }
 }

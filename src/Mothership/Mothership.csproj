@@ -45,6 +45,7 @@
     <Compile Include="Lp\MothershipLp.cs" />
     <Compile Include="Manager\BuiltinCommands\ExitCommand.cs" />
     <Compile Include="Manager\BuiltinCommands\InfoCommand.cs" />
+    <Compile Include="Manager\BuiltinCommands\ShellCommand.cs" />
     <Compile Include="Manager\IBuiltinCommand.cs" />
     <Compile Include="Manager\IClientMacro.cs" />
     <Compile Include="Manager\IServerCommand.cs" />

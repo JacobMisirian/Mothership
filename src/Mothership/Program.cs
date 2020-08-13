@@ -1,4 +1,5 @@
-﻿using Mothership.Manager;
+﻿using Mothership.Lp;
+using Mothership.Manager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace Mothership
     {
         static void Main(string[] args)
         {
-            MothershipTelnetServer telnetServer = new MothershipTelnetServer(1337, null);
+            MothershipLp lp = new MothershipLp(1338);
+            lp.Start();
+            MothershipTelnetServer telnetServer = new MothershipTelnetServer(1337, lp);
             telnetServer.Start();
         }
     }

@@ -76,12 +76,12 @@ namespace Mothership.Manager {
         }
 
         public void Stop() {
+            Client.Close();
+
             if (promptThread != null) {
                 promptThread.Abort();
                 promptThread = null;
             }
-
-            Client.Close();
         }
 
         private void processInput(string input) {
@@ -107,7 +107,11 @@ namespace Mothership.Manager {
                         }
                         break;
                     case TelnetUserLevel.Interactive:
-                        Client.WriteLine(SelectedClient.Query(input));
+                        if (cmd == "exit") {
+                            UserLevel = TelnetUserLevel.Client;
+                        } else {
+                            Client.WriteLine(SelectedClient.Query(input));
+                        }
                         break;
                 }
             } catch (ArgumentNullException ane) {
@@ -120,7 +124,11 @@ namespace Mothership.Manager {
         }
 
         private string formatShellPrompt() {
-            return string.Format("{0}{1} ", UserLevel == TelnetUserLevel.Server ? string.Empty : SelectedClient.Client.Id, ((char)UserLevel).ToString());
+            return string.Format("{0}{1} ", 
+                UserLevel == TelnetUserLevel.Server
+                    ? string.Empty 
+                    : string.Format("[{0}]", SelectedClient.Client.Id)
+                , ((char)UserLevel).ToString());
         }
     }
 }
