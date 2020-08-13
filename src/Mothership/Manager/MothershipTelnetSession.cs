@@ -13,8 +13,9 @@ namespace Mothership.Manager {
         private MothershipTelnetServer server;
 
         public Client Client { get; private set; }
-        public TelnetUserLevel UserLevel { get; private set; }
-        public string SelectedClient { get; set; }
+        public TelnetUserLevel UserLevel { get; set; }
+        public MothershipConnection SelectedClient { get; set; }
+
         public MothershipTelnetSession(MothershipTelnetServer server, Client client) {
             this.server = server;
 
@@ -60,7 +61,7 @@ namespace Mothership.Manager {
         private void start() {
             try {
                 while (true) {
-                    Client.Write(((char)UserLevel).ToString());
+                    Client.Write(formatShellPrompt());
 
                     string input = Client.ReadLine();
                     if (input.Trim() != string.Empty) {
@@ -68,10 +69,19 @@ namespace Mothership.Manager {
                     }
                 }
             } catch (Exception ex) {
-                Console.WriteLine(ex.ToString());
+               // Console.WriteLine(ex.ToString());
             } finally {
                 Stop();
             }
+        }
+
+        public void Stop() {
+            if (promptThread != null) {
+                promptThread.Abort();
+                promptThread = null;
+            }
+
+            Client.Close();
         }
 
         private void processInput(string input) {
@@ -91,10 +101,13 @@ namespace Mothership.Manager {
 
                     case TelnetUserLevel.Client:
                         if (server.BuiltinCommands.ContainsKey(cmd)) {
-                            server.BuiltinCommands[cmd].Invoke(server, this, server.Lp.Connections[SelectedClient], args);
+                            server.BuiltinCommands[cmd].Invoke(server, this, SelectedClient, args);
                         } else {
                             Client.WriteLine("No such command {0}! Type help for help.", cmd);
                         }
+                        break;
+                    case TelnetUserLevel.Interactive:
+                        Client.WriteLine(SelectedClient.Query(input));
                         break;
                 }
             } catch (ArgumentNullException ane) {
@@ -106,13 +119,8 @@ namespace Mothership.Manager {
             }
         }
 
-        public void Stop() {
-            if (promptThread != null) {
-                promptThread.Abort();
-                promptThread = null;
-            }
-
-            Client.Close();
+        private string formatShellPrompt() {
+            return string.Format("{0}{1} ", UserLevel == TelnetUserLevel.Server ? string.Empty : SelectedClient.Client.Id, ((char)UserLevel).ToString());
         }
     }
 }

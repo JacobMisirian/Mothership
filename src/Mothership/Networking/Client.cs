@@ -32,6 +32,7 @@ namespace Mothership.Networking
         public string ReadLine() {
             while (reading) Thread.Sleep(20);
             reading = true;
+
             try {
                 return reader.ReadLine();
             } finally {
@@ -41,8 +42,9 @@ namespace Mothership.Networking
 
         private bool writing = false;
         public void Write(string strf, params object[] args) {
-            while (writing) ;
+            while (writing) Thread.Sleep(20);
             writing = true;
+
             try {
                 if (args.Length == 0)
                     writer.Write(strf);

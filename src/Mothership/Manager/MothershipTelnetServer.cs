@@ -20,7 +20,6 @@ namespace Mothership.Manager {
 
         public MothershipTelnetServer(int port, MothershipLp lp) {
             Lp = lp;
-            server = new Server(port);
 
             Sessions = new Dictionary<string, MothershipTelnetSession>();
 
@@ -41,13 +40,21 @@ namespace Mothership.Manager {
                     ClientMacros.Add(command.Name, command);
                 }
             }
+
+            server = new Server(port);
+            server.ClientConnectedEvent += server_clientConnected;
+            server.ClientDisconnectedEvent += server_clientDisconnected;
         }
 
         public void Start() {
             server.Start();
+        }
 
-            server.ClientConnectedEvent += server_clientConnected;
-            server.ClientDisconnectedEvent += server_clientDisconnected;
+        public void EndSession(string id) {
+            if (Sessions.ContainsKey(id)) {
+                Sessions[id].Stop();
+                Sessions.Remove(id);
+            }
         }
 
         private void server_clientConnected(object sender, ClientConnectedEventArgs e) {
@@ -62,10 +69,7 @@ namespace Mothership.Manager {
         }
 
         private void server_clientDisconnected(object sender, ClientDisconnectedEventArgs e) {
-            if (Sessions.ContainsKey(e.Client.Id)) {
-                Sessions[e.Client.Id].Stop();
-                Sessions.Remove(e.Client.Id);
-            }
+            EndSession(e.Client.Id);
         }
     }
 }

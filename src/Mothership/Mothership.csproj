@@ -43,11 +43,16 @@
   <ItemGroup>
     <Compile Include="Lp\MothershipConnection.cs" />
     <Compile Include="Lp\MothershipLp.cs" />
+    <Compile Include="Manager\BuiltinCommands\ExitCommand.cs" />
+    <Compile Include="Manager\BuiltinCommands\InfoCommand.cs" />
     <Compile Include="Manager\IBuiltinCommand.cs" />
     <Compile Include="Manager\IClientMacro.cs" />
     <Compile Include="Manager\IServerCommand.cs" />
     <Compile Include="Manager\MothershipTelnetServer.cs" />
     <Compile Include="Manager\MothershipTelnetSession.cs" />
+    <Compile Include="Manager\ServerCommands\ExitCommand.cs" />
+    <Compile Include="Manager\ServerCommands\ListCommand.cs" />
+    <Compile Include="Manager\ServerCommands\SelectCommand.cs" />
     <Compile Include="Manager\ServerCommands\WhoCommand.cs" />
     <Compile Include="Manager\TelnetUserLevel.cs" />
     <Compile Include="Networking\Client.cs" />
@@ -58,7 +63,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Manager\BuiltinClientCommands\" />
     <Folder Include="Manager\ClientMacros\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
