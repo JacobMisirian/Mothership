@@ -61,7 +61,7 @@ namespace Mothership.Manager {
             MothershipTelnetSession session = new MothershipTelnetSession(this, e.Client);
 
             if (!session.Authenticate()) {
-                server_clientDisconnected(null, new ClientDisconnectedEventArgs(e.Client));
+                EndSession(e.Client.Id);
             }
 
             session.StartInThread();
